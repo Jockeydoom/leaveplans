@@ -3,139 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Leave Planner 2026</title>
+    <title>Epic Piping Leave Planner 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { background-color: #0f172a; color: #f1f5f9; font-family: sans-serif; }
-        .gantt-grid { display: grid; grid-template-columns: 250px 1fr; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
+        body { background-color: #0b0f1a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .gantt-container { display: grid; grid-template-columns: 280px 1fr; }
+        .month-segment { border-right: 1px solid #1e293b; position: relative; }
+        .week-segment { flex: 1; border-right: 1px solid #33415544; font-size: 8px; text-align: center; padding-top: 4px; color: #64748b; }
+        .week-segment:last-child { border-right: none; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .leave-bar:hover .tooltip { display: block; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div class="max-w-[1600px] mx-auto">
+        <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-emerald-400">Leave Planner 2026</h1>
-                <p class="text-slate-400">Annual Leave Management Dashboard</p>
+                <h1 class="text-2xl font-bold text-emerald-400 tracking-tight">2026 ANNUAL LEAVE PLANNER</h1>
+                <p class="text-slate-500 text-sm">Comprehensive Employee Leave Schedule</p>
             </div>
 
-            <div class="flex gap-4 bg-slate-800 p-3 rounded-lg border border-slate-700">
-                <select id="teamFilter" onchange="renderDashboard()" class="bg-transparent outline-none text-sm cursor-pointer border-r border-slate-600 pr-4">
+            <div class="flex flex-wrap gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-800 backdrop-blur-sm">
+                <input type="text" id="nameSearch" placeholder="Search name..." oninput="render()" 
+                       class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none focus:border-emerald-500 transition-all w-40">
+                
+                <select id="teamFilter" onchange="render()" class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none cursor-pointer">
                     <option value="All">All Teams</option>
                     <option value="Team B">Team B</option>
                     <option value="Team C">Team C</option>
                     <option value="Support Team">Support Team</option>
                     <option value="DC Team">DC Team</option>
+                    <option value="Material Team">Material Team</option>
+                    <option value="CAD Admin Team">CAD Admin Team</option>
+                    <option value="Revision Team">Revision Team</option>
                 </select>
-                <select id="roleFilter" onchange="renderDashboard()" class="bg-transparent outline-none text-sm cursor-pointer">
-                    <option value="All">All Roles</option>
+
+                <select id="roleFilter" onchange="render()" class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none cursor-pointer">
+                    <option value="All">All Designations</option>
                     <option value="Piping Checker">Piping Checker</option>
                     <option value="Piping Detailer">Piping Detailer</option>
                     <option value="Team Leader">Team Leader</option>
                     <option value="Document Controller">Document Controller</option>
+                    <option value="Project Engineer">Project Engineer</option>
+                    <option value="Material Analyst">Material Analyst</option>
                 </select>
             </div>
         </header>
 
-        <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
-            <div class="gantt-grid border-b border-slate-800 bg-slate-800/50">
-                <div class="p-4 font-bold text-slate-300 border-r border-slate-700">Employee</div>
-                <div class="flex text-[10px] uppercase font-bold text-slate-500">
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Jan</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Feb</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Mar</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Apr</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">May</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Jun</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Jul</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Aug</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Sep</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Oct</div>
-                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Nov</div>
-                    <div class="flex-1 p-2 text-center">Dec</div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+            <div class="gantt-container bg-slate-800/50 border-b border-slate-700">
+                <div class="p-4 font-bold text-slate-300 border-r border-slate-700 uppercase text-xs tracking-widest flex items-end">Employee Name</div>
+                <div class="flex flex-col">
+                    <div class="flex border-b border-slate-700/50">
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Jan</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Feb</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Mar</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Apr</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">May</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Jun</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Jul</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Aug</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Sep</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Oct</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase border-r border-slate-700/50 text-emerald-500/80">Nov</div>
+                        <div class="flex-1 text-center py-2 text-[11px] font-bold uppercase text-emerald-500/80">Dec</div>
+                    </div>
+                    <div class="flex">
+                        <script>
+                            for(let i=0; i<12; i++) {
+                                document.write('<div class="flex-1 flex border-r border-slate-700/30">');
+                                for(let j=1; j<=4; j++) document.write(`<div class="week-segment">W${j}</div>`);
+                                document.write('</div>');
+                            }
+                        </script>
+                    </div>
                 </div>
             </div>
 
-            <div id="dashboardBody" class="max-h-[70vh] overflow-y-auto">
+            <div id="chartBody" class="max-h-[75vh] overflow-y-auto bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px]">
                 </div>
         </div>
     </div>
 
     <script>
-        // Data from your CSV files
-        const employees = [
-            { id: 1114, name: "SAURAV", team: "Team C", role: "Piping Checker", start: "2026-04-15", end: "2026-05-15", remark: "MARRAIGE" },
-            { id: 1329, name: "VIVEK KRISHNAN", team: "Team B", role: "Piping Checker", start: "2026-05-24", end: "2026-06-24", remark: "" },
-            { id: 2277, name: "MD MOJAHID RAJA", team: "Team B", role: "Piping Checker", start: "2026-03-23", end: "2026-04-19", remark: "ANNUAL LEAVE" },
-            { id: 2154, name: "A.K.SALIM MALICK AFRUDEEN", team: "Team C", role: "Piping Detailer", start: "2026-04-12", end: "2026-05-25", remark: "Marriage" },
-            { id: 2220, name: "ATHUL VINCENT", team: "Support Team", role: "Support Checker", start: "2026-10-01", end: "2026-10-28", remark: "" },
-            { id: 2477, name: "PRAKYATH PRAKASH", team: "DC Team", role: "Document Controller", start: "2026-09-01", end: "2026-10-01", remark: "" },
-            { id: 596, name: "SHIBNATH GHANTA", team: "Team B", role: "Team Leader", start: "2026-03-23", end: "2026-04-21", remark: "Annual Leave" },
-            { id: 2412, name: "MOHAMMAD WAQUAR", team: "Team B", role: "Piping Checker", start: "2026-10-15", end: "2026-11-15", remark: "" }
+        // FULL DATASET MAPPED FROM CSV [cite: 1, 2, 3, 4]
+        const data = [
+            { name: "Saurav cs", team: "Team C", role: "Piping Checker", start: "2026-04-15", end: "2026-05-15", remark: "MARRAIGE" },
+            { name: "Vivek Krishnan", team: "Team B", role: "Piping Checker", start: "2026-05-24", end: "2026-06-24", remark: "" },
+            { name: "Harikrishnan TS", team: "Team B", role: "Piping Checker", start: "2026-08-10", end: "2026-09-10", remark: "" },
+            { name: "Mojahid Raja", team: "Team B", role: "Piping Checker", start: "2026-03-23", end: "2026-04-19", remark: "ANNUAL LEAVE" },
+            { name: "Shibnath Ghanta", team: "Team B", role: "Team Leader", start: "2026-03-23", end: "2026-04-21", remark: "Anual Leave" },
+            { name: "Prosenjit Ghosh", team: "Team B", role: "Piping Checker", start: "2026-10-11", end: "2026-11-20", remark: "" },
+            { name: "Rutika Pat", team: "Team B", role: "Piping Detailer", start: "2026-08-16", end: "2026-09-14", remark: "" },
+            { name: "Monisha Unnithan", team: "Team C", role: "Piping Checker", start: "2026-09-15", end: "2026-10-14", remark: "" },
+            { name: "Sreesh Sureshkumar", team: "Team B", role: "Piping Checker", start: "2026-03-26", end: "2026-05-04", remark: "WEDDING" },
+            { name: "Ritesh Kumar", team: "Team B", role: "Piping Checker", start: "2026-04-05", end: "2026-05-01", remark: "" },
+            { name: "Sreejin Ms", team: "Team B", role: "Piping Detailer", start: "2026-04-10", end: "2026-05-10", remark: "" },
+            { name: "Nikhil Sankar", team: "Team B", role: "Piping Detailer", start: "2026-11-01", end: "2026-12-06", remark: "" },
+            { name: "Chetan Yerne", team: "Team C", role: "Team Leader", start: "2026-11-15", end: "2026-12-14", remark: "" },
+            { name: "Athul Vincent", team: "Support Team", role: "Support Checker", start: "2026-10-01", end: "2026-10-28", remark: "" },
+            { name: "Prakyath Prakash Kumar", team: "DC Team", role: "Document Controller", start: "2026-09-01", end: "2026-10-01", remark: "" },
+            { name: "Lekshmi Seema", team: "Support Team", role: "Support Checker", start: "2026-12-20", end: "2027-01-20", remark: "" },
+            { name: "Ismail Ebrahim", team: "CAD Admin Team", role: "AutoSpool Admin", start: "2026-03-15", end: "2026-04-13", remark: "" },
+            { name: "Melisha Dsouza", team: "DC Team", role: "Document Controller", start: "2026-05-03", end: "2026-05-29", remark: "" },
+            { name: "Anwin John", team: "CAD Admin Team", role: "Project Engineer", start: "2026-12-20", end: "2027-01-19", remark: "" },
+            { name: "Kim Rose", team: "Material Team", role: "Material Analyst", start: "2026-11-22", end: "2026-12-22", remark: "" },
+            { name: "Zaheer Ahmed", team: "Team C", role: "Piping Checker", start: "2026-05-07", end: "2026-06-05", remark: "Marriage" },
+            { name: "Abhinand Nair", team: "Team B", role: "Piping Checker", start: "2026-07-05", end: "2026-08-05", remark: "Weddings" },
+            { name: "Pradheesh Manikandan", team: "Team B", role: "Piping Detailer", start: "2026-06-08", end: "2026-07-09", remark: "" },
+            { name: "Ashith Pakkan", team: "Support Team", role: "Support Detailer", start: "2026-12-06", end: "2027-01-08", remark: "" },
+            { name: "Sruthy Raj", team: "DC Team", role: "Document Controller", start: "2026-11-01", end: "2026-11-30", remark: "" },
+            { name: "Sruthy K", team: "Material Team", role: "Material Analyst", start: "2026-11-25", end: "2026-12-25", remark: "" },
+            { name: "Suman Mondal", team: "Revision Team", role: "Piping Checker", start: "2026-02-01", end: "2026-03-02", remark: "Annual leave" },
+            { name: "Nishanth IV", team: "Team B", role: "Piping Checker", start: "2026-04-22", end: "2026-05-29", remark: "" },
+            { name: "Mohammad Navaz", team: "Team C", role: "Piping Detailer", start: "2026-07-26", end: "2026-08-28", remark: "" },
+            { name: "Sabeel Manaf", team: "Team C", role: "Piping Checker", start: "2026-10-04", end: "2026-11-03", remark: "" },
+            { name: "Owaish Shamsi", team: "Team B", role: "Piping Checker", start: "2026-10-05", end: "2026-11-05", remark: "" },
+            { name: "Rajnish Choubey", team: "Team C", role: "Piping Checker", start: "2026-10-16", end: "2026-11-18", remark: "" },
+            { name: "Mohammed Sadhik", team: "Team C", role: "Piping Checker", start: "2026-10-04", end: "2026-11-02", remark: "annual" },
+            { name: "Sayan Mishra", team: "Team C", role: "Piping Detailer", start: "2026-11-01", end: "2026-11-29", remark: "" },
+            { name: "Yamin Pa Pa Soe", team: "Material Team", role: "Material Analyst", start: "2026-12-01", end: "2026-12-31", remark: "" },
+            { name: "Hnin Thazin", team: "Support Team", role: "Support Detailer", start: "2026-10-11", end: "2026-11-10", remark: "" },
+            { name: "Maqbool Ahmad", team: "Team C", role: "Piping Detailer", start: "2026-10-04", end: "2026-10-30", remark: "" },
+            { name: "Sangeetha C", team: "Team C", role: "Material Analyst", start: "2026-04-26", end: "2026-05-22", remark: "" },
+            { name: "Shelma Antony", team: "Team C", role: "Material Analyst", start: "2026-08-09", end: "2026-09-05", remark: "" },
+            { name: "Mohammad Waquar", team: "Team B", role: "Piping Checker", start: "2026-10-15", end: "2026-11-15", remark: "" },
+            { name: "Salim Malick", team: "Team C", role: "Piping Detailer", start: "2026-04-12", end: "2026-05-25", remark: "Marriage" },
+            { name: "Jayesh Saroj", team: "Support Team", role: "Team Leader", start: "2026-02-09", end: "2026-03-10", remark: "" },
+            { name: "Amal Kumar", team: "Revision Team", role: "Piping Detailer", start: "2026-06-21", end: "2026-07-20", remark: "" },
+            { name: "Nivin Varkey", team: "Material Team", role: "Project Engineer", start: "2026-08-24", end: "2026-09-05", remark: "" },
+            { name: "Arunkumar Nedunchezhian", team: "Team C", role: "Piping Detailer", start: "2026-07-13", end: "2026-08-13", remark: "" },
+            { name: "Krishnakumar Pandiyan", team: "Team C", role: "Piping Detailer", start: "2026-07-12", end: "2026-08-10", remark: "" },
+            { name: "Ragul Raja", team: "Team C", role: "Piping Checker", start: "2026-12-28", end: "2027-01-27", remark: "" },
+            { name: "Vishnu TRK", team: "Team C", role: "Piping Checker", start: "2026-10-01", end: "2026-10-31", remark: "" }
         ];
 
-        function calculatePosition(startDate, endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
+        function getPos(startStr, endStr) {
+            const start = new Date(startStr);
+            const end = new Date(endStr);
             const yearStart = new Date('2026-01-01');
-            
-            // Difference in days from start of the year
-            const startDiff = (start - yearStart) / (1000 * 60 * 60 * 24);
+            const diff = (start - yearStart) / (1000 * 60 * 60 * 24);
             const duration = (end - start) / (1000 * 60 * 60 * 24);
-            
-            return {
-                left: (startDiff / 365) * 100,
-                width: (duration / 365) * 100
-            };
+            return { left: (diff / 365) * 100, width: (duration / 365) * 100 };
         }
 
-        function renderDashboard() {
-            const teamVal = document.getElementById('teamFilter').value;
-            const roleVal = document.getElementById('roleFilter').value;
-            const container = document.getElementById('dashboardBody');
-            
-            container.innerHTML = '';
+        function render() {
+            const team = document.getElementById('teamFilter').value;
+            const role = document.getElementById('roleFilter').value;
+            const search = document.getElementById('nameSearch').value.toLowerCase();
+            const body = document.getElementById('chartBody');
+            body.innerHTML = '';
 
-            const filtered = employees.filter(emp => 
-                (teamVal === 'All' || emp.team === teamVal) &&
-                (roleVal === 'All' || emp.role === roleVal)
+            const filtered = data.filter(emp => 
+                (team === 'All' || emp.team === team) &&
+                (role === 'All' || emp.role === role) &&
+                (emp.name.toLowerCase().includes(search))
             );
 
             filtered.forEach(emp => {
-                const pos = calculatePosition(emp.start, emp.end);
+                const pos = getPos(emp.start, emp.end);
                 const row = document.createElement('div');
-                row.className = 'gantt-grid border-b border-slate-800 hover:bg-slate-800/30 transition-colors';
-                
+                row.className = 'gantt-container border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors';
                 row.innerHTML = `
-                    <div class="p-4 border-r border-slate-800 bg-slate-900/50">
-                        <div class="font-semibold text-sm">${emp.name}</div>
-                        <div class="text-[10px] text-slate-500 uppercase tracking-wider">${emp.role} • ${emp.team}</div>
+                    <div class="p-3 border-r border-slate-800 bg-slate-900/40">
+                        <div class="text-sm font-bold text-slate-200">${emp.name}</div>
+                        <div class="text-[9px] text-slate-500 uppercase font-medium">${emp.role} • ${emp.team}</div>
                     </div>
-                    <div class="relative h-16 w-full flex items-center px-1">
+                    <div class="relative h-14 w-full flex items-center px-1">
                         <div class="absolute inset-0 flex pointer-events-none">
-                            ${Array(12).fill(0).map(() => `<div class="flex-1 border-r border-slate-800/40"></div>`).join('')}
+                            ${Array(12).fill(0).map(() => `<div class="flex-1 border-r border-slate-800/30"></div>`).join('')}
                         </div>
-                        <div class="absolute h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-md shadow-lg flex items-center px-3 overflow-hidden group cursor-pointer transition-transform hover:scale-[1.02]"
+                        <div class="leave-bar absolute h-7 bg-gradient-to-r from-emerald-600/90 to-teal-500/90 rounded-md border border-emerald-400/30 shadow-lg shadow-emerald-950/20 flex items-center px-3 cursor-help transition-all hover:brightness-110"
                              style="left: ${pos.left}%; width: ${pos.width}%;">
-                            <span class="text-[9px] font-bold text-white truncate uppercase">${emp.remark || 'Vacation'}</span>
-                            <div class="absolute hidden group-hover:block bottom-full mb-2 bg-white text-slate-900 text-[10px] p-2 rounded shadow-xl whitespace-nowrap z-50">
+                            <span class="text-[10px] font-bold text-white truncate uppercase">${emp.remark || 'Vacation'}</span>
+                            <div class="tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-100 text-slate-900 text-[10px] p-2 rounded shadow-2xl z-50 whitespace-nowrap">
+                                <strong>${emp.name}</strong><br/>
                                 ${emp.start} to ${emp.end}
                             </div>
                         </div>
                     </div>
                 `;
-                container.appendChild(row);
+                body.appendChild(row);
             });
         }
 
-        // Initialize Lucide Icons
-        lucide.createIcons();
-        // Initial Render
-        renderDashboard();
+        render();
     </script>
 </body>
 </html>
