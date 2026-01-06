@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Leave Planner 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background-color: #0f172a; color: #f1f5f9; font-family: sans-serif; }
+        .gantt-grid { display: grid; grid-template-columns: 250px 1fr; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-emerald-400">Leave Planner 2026</h1>
+                <p class="text-slate-400">Annual Leave Management Dashboard</p>
+            </div>
+
+            <div class="flex gap-4 bg-slate-800 p-3 rounded-lg border border-slate-700">
+                <select id="teamFilter" onchange="renderDashboard()" class="bg-transparent outline-none text-sm cursor-pointer border-r border-slate-600 pr-4">
+                    <option value="All">All Teams</option>
+                    <option value="Team B">Team B</option>
+                    <option value="Team C">Team C</option>
+                    <option value="Support Team">Support Team</option>
+                    <option value="DC Team">DC Team</option>
+                </select>
+                <select id="roleFilter" onchange="renderDashboard()" class="bg-transparent outline-none text-sm cursor-pointer">
+                    <option value="All">All Roles</option>
+                    <option value="Piping Checker">Piping Checker</option>
+                    <option value="Piping Detailer">Piping Detailer</option>
+                    <option value="Team Leader">Team Leader</option>
+                    <option value="Document Controller">Document Controller</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
+            <div class="gantt-grid border-b border-slate-800 bg-slate-800/50">
+                <div class="p-4 font-bold text-slate-300 border-r border-slate-700">Employee</div>
+                <div class="flex text-[10px] uppercase font-bold text-slate-500">
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Jan</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Feb</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Mar</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Apr</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">May</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Jun</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Jul</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Aug</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Sep</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Oct</div>
+                    <div class="flex-1 border-r border-slate-800 p-2 text-center">Nov</div>
+                    <div class="flex-1 p-2 text-center">Dec</div>
+                </div>
+            </div>
+
+            <div id="dashboardBody" class="max-h-[70vh] overflow-y-auto">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Data from your CSV files
+        const employees = [
+            { id: 1114, name: "SAURAV", team: "Team C", role: "Piping Checker", start: "2026-04-15", end: "2026-05-15", remark: "MARRAIGE" },
+            { id: 1329, name: "VIVEK KRISHNAN", team: "Team B", role: "Piping Checker", start: "2026-05-24", end: "2026-06-24", remark: "" },
+            { id: 2277, name: "MD MOJAHID RAJA", team: "Team B", role: "Piping Checker", start: "2026-03-23", end: "2026-04-19", remark: "ANNUAL LEAVE" },
+            { id: 2154, name: "A.K.SALIM MALICK AFRUDEEN", team: "Team C", role: "Piping Detailer", start: "2026-04-12", end: "2026-05-25", remark: "Marriage" },
+            { id: 2220, name: "ATHUL VINCENT", team: "Support Team", role: "Support Checker", start: "2026-10-01", end: "2026-10-28", remark: "" },
+            { id: 2477, name: "PRAKYATH PRAKASH", team: "DC Team", role: "Document Controller", start: "2026-09-01", end: "2026-10-01", remark: "" },
+            { id: 596, name: "SHIBNATH GHANTA", team: "Team B", role: "Team Leader", start: "2026-03-23", end: "2026-04-21", remark: "Annual Leave" },
+            { id: 2412, name: "MOHAMMAD WAQUAR", team: "Team B", role: "Piping Checker", start: "2026-10-15", end: "2026-11-15", remark: "" }
+        ];
+
+        function calculatePosition(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const yearStart = new Date('2026-01-01');
+            
+            // Difference in days from start of the year
+            const startDiff = (start - yearStart) / (1000 * 60 * 60 * 24);
+            const duration = (end - start) / (1000 * 60 * 60 * 24);
+            
+            return {
+                left: (startDiff / 365) * 100,
+                width: (duration / 365) * 100
+            };
+        }
+
+        function renderDashboard() {
+            const teamVal = document.getElementById('teamFilter').value;
+            const roleVal = document.getElementById('roleFilter').value;
+            const container = document.getElementById('dashboardBody');
+            
+            container.innerHTML = '';
+
+            const filtered = employees.filter(emp => 
+                (teamVal === 'All' || emp.team === teamVal) &&
+                (roleVal === 'All' || emp.role === roleVal)
+            );
+
+            filtered.forEach(emp => {
+                const pos = calculatePosition(emp.start, emp.end);
+                const row = document.createElement('div');
+                row.className = 'gantt-grid border-b border-slate-800 hover:bg-slate-800/30 transition-colors';
+                
+                row.innerHTML = `
+                    <div class="p-4 border-r border-slate-800 bg-slate-900/50">
+                        <div class="font-semibold text-sm">${emp.name}</div>
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider">${emp.role} • ${emp.team}</div>
+                    </div>
+                    <div class="relative h-16 w-full flex items-center px-1">
+                        <div class="absolute inset-0 flex pointer-events-none">
+                            ${Array(12).fill(0).map(() => `<div class="flex-1 border-r border-slate-800/40"></div>`).join('')}
+                        </div>
+                        <div class="absolute h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-md shadow-lg flex items-center px-3 overflow-hidden group cursor-pointer transition-transform hover:scale-[1.02]"
+                             style="left: ${pos.left}%; width: ${pos.width}%;">
+                            <span class="text-[9px] font-bold text-white truncate uppercase">${emp.remark || 'Vacation'}</span>
+                            <div class="absolute hidden group-hover:block bottom-full mb-2 bg-white text-slate-900 text-[10px] p-2 rounded shadow-xl whitespace-nowrap z-50">
+                                ${emp.start} to ${emp.end}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+        // Initial Render
+        renderDashboard();
+    </script>
+</body>
+</html>
