@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Epic Piping: Annual Leave Plan 2026</title>
+    <title>Epic Piping: Leave Manager Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0b0f1a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-        .gantt-container { display: grid; grid-template-columns: 280px 1fr; }
+        .gantt-container { display: grid; grid-template-columns: 320px 1fr; }
         .week-segment { flex: 1; border-right: 1px solid #1e293b; font-size: 8px; text-align: center; padding-top: 4px; color: #475569; }
-        .week-segment:last-child { border-right: none; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         .leave-bar:hover .tooltip { display: block; }
+        .admin-only { display: none; }
+        body.admin-mode .admin-only { display: block; }
+        body.admin-mode .admin-flex { display: flex; }
     </style>
 </head>
 <body class="p-4 md:p-6">
@@ -21,12 +23,12 @@
         <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-emerald-400 tracking-tight">ANNUAL LEAVE PLAN - 2026</h1>
-                <p class="text-slate-500 text-sm">Designation & Team Conflict Tracking Enabled</p>
+                <p class="text-slate-500 text-sm">Conflict Tracking & Persistence Enabled</p>
             </div>
 
-            <div class="flex flex-wrap gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                <input type="text" id="nameSearch" placeholder="Search employee..." oninput="renderDashboard()" 
-                       class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none focus:border-emerald-500 w-48">
+            <div class="flex flex-wrap gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-800 backdrop-blur-md">
+                <input type="text" id="nameSearch" placeholder="Search..." oninput="renderDashboard()" 
+                       class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none focus:border-emerald-500 w-40">
                 
                 <select id="teamFilter" onchange="renderDashboard()" class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none">
                     <option value="All">All Teams</option>
@@ -35,33 +37,41 @@
                     <option value="Support Team">Support Team</option>
                     <option value="DC Team">DC Team</option>
                     <option value="Material Team">Material Team</option>
-                    <option value="CAD Admin Team">CAD Admin Team</option>
-                    <option value="Revision Team">Revision Team</option>
                 </select>
 
-                <div class="flex items-center gap-3 ml-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 border-l border-slate-700 pl-4">
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-emerald-500 rounded"></span> Normal</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 bg-red-600 rounded"></span> Conflict</span>
-                </div>
+                <button onclick="toggleAdmin()" id="adminBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-sm font-bold transition-all">
+                    Admin Login
+                </button>
             </div>
         </header>
 
-        <div id="conflictPanel" class="hidden mb-6 bg-red-950/20 border border-red-900/40 rounded-xl p-4">
-            <h2 class="text-red-500 font-bold text-xs uppercase tracking-widest mb-3 flex items-center gap-2">
-                ⚠️ Resource Conflicts Detected (Same Team & Designation)
-            </h2>
-            <div id="conflictList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                </div>
+        <div class="admin-only mb-6 bg-slate-900 border border-emerald-500/30 p-4 rounded-xl shadow-2xl">
+            <h3 class="text-emerald-400 font-bold text-sm mb-4 uppercase tracking-widest">Add New Entry</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <input type="text" id="newName" placeholder="Name" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none focus:border-emerald-500">
+                <input type="text" id="newRole" placeholder="Designation" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none focus:border-emerald-500">
+                <select id="newTeam" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
+                    <option>Team B</option><option>Team C</option><option>Support Team</option><option>DC Team</option><option>Material Team</option>
+                </select>
+                <input type="date" id="newStart" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
+                <input type="date" id="newEnd" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
+                <button onclick="addEmployee()" class="bg-emerald-500 text-slate-900 font-bold rounded hover:bg-emerald-400 transition-colors">Add Employee</button>
+            </div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+        <div id="conflictPanel" class="hidden mb-6 bg-red-950/20 border border-red-900/40 rounded-xl p-4">
+            <h2 class="text-red-500 font-bold text-xs uppercase mb-3 flex items-center gap-2">⚠️ Overlap Alerts</h2>
+            <div id="conflictList" class="grid grid-cols-1 md:grid-cols-3 gap-2"></div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
             <div class="gantt-container bg-slate-800/40 border-b border-slate-700">
-                <div class="p-4 font-bold text-slate-400 border-r border-slate-700 uppercase text-[10px] tracking-widest flex items-end">Employee Schedule</div>
+                <div class="p-4 font-bold text-slate-400 border-r border-slate-700 uppercase text-[10px] tracking-widest flex items-end">Resources</div>
                 <div class="flex flex-col">
                     <div class="flex border-b border-slate-700/50">
                         <script>
-                            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-                            months.forEach(m => document.write(`<div class="flex-1 text-center py-2 text-[10px] font-bold uppercase border-r border-slate-700/50 text-slate-400">${m}</div>`));
+                            ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].forEach(m => 
+                                document.write(`<div class="flex-1 text-center py-2 text-[10px] font-bold uppercase border-r border-slate-700/50 text-slate-400">${m}</div>`));
                         </script>
                     </div>
                     <div class="flex">
@@ -75,15 +85,13 @@
                     </div>
                 </div>
             </div>
-
-            <div id="chartBody" class="max-h-[65vh] overflow-y-auto">
-                </div>
+            <div id="chartBody" class="max-h-[60vh] overflow-y-auto"></div>
         </div>
     </div>
 
     <script>
-        // COMPREHENSIVE DATASET FROM SOURCE 
-        const leaveData = [
+        const ADMIN_PASSWORD = "123"; // CHANGE THIS PASSWORD
+        let leaveData = JSON.parse(localStorage.getItem('epicLeaveData')) || [
             { name: "Saurav cs", team: "Team C", role: "Piping Checker", start: "2026-04-15", end: "2026-05-15", remark: "MARRAIGE" },
             { name: "Vivek Krishnan", team: "Team B", role: "Piping Checker", start: "2026-05-24", end: "2026-06-24", remark: "" },
             { name: "Harikrishnan TS", team: "Team B", role: "Piping Checker", start: "2026-08-10", end: "2026-09-10", remark: "" },
@@ -134,17 +142,51 @@
             { name: "Amal Kumar", team: "Revision Team", role: "Piping Detailer", start: "2026-06-21", end: "2026-07-20", remark: "" }
         ];
 
-        // CONFLICT LOGIC: Same Team + Same Designation + Overlapping Dates 
+        function toggleAdmin() {
+            if (document.body.classList.contains('admin-mode')) {
+                document.body.classList.remove('admin-mode');
+                document.getElementById('adminBtn').innerText = "Admin Login";
+            } else {
+                const pass = prompt("Enter Admin Password:");
+                if (pass === ADMIN_PASSWORD) {
+                    document.body.classList.add('admin-mode');
+                    document.getElementById('adminBtn').innerText = "Logout";
+                } else { alert("Wrong Password!"); }
+            }
+            renderDashboard();
+        }
+
+        function addEmployee() {
+            const entry = {
+                name: document.getElementById('newName').value,
+                role: document.getElementById('newRole').value,
+                team: document.getElementById('newTeam').value,
+                start: document.getElementById('newStart').value,
+                end: document.getElementById('newEnd').value,
+                remark: "PLANNED"
+            };
+            if (!entry.name || !entry.start || !entry.end) return alert("Fill all fields");
+            leaveData.push(entry);
+            saveAndRender();
+        }
+
+        function removeEmployee(index) {
+            if (confirm(`Remove ${leaveData[index].name}?`)) {
+                leaveData.splice(index, 1);
+                saveAndRender();
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('epicLeaveData', JSON.stringify(leaveData));
+            renderDashboard();
+        }
+
         function getOverlaps(current, all) {
             return all.filter(other => {
-                if (current.name === other.name) return false;
+                if (current === other) return false;
                 if (current.team !== other.team || current.role !== other.role) return false;
-                
-                const s1 = new Date(current.start);
-                const e1 = new Date(current.end);
-                const s2 = new Date(other.start);
-                const e2 = new Date(other.end);
-                return s1 <= e2 && s2 <= e1;
+                return new Date(current.start) <= new Date(other.end) && new Date(other.start) <= new Date(current.end);
             });
         }
 
@@ -155,51 +197,47 @@
             const confPanel = document.getElementById('conflictPanel');
             const confList = document.getElementById('conflictList');
             
-            body.innerHTML = '';
-            confList.innerHTML = '';
-            let globalConflicts = false;
+            body.innerHTML = ''; confList.innerHTML = '';
+            let hasConflicts = false;
 
-            leaveData.forEach(emp => {
+            leaveData.forEach((emp, index) => {
                 const conflicts = getOverlaps(emp, leaveData);
                 const isConflicted = conflicts.length > 0;
 
-                // Add to Separate Conflict View
                 if (isConflicted) {
-                    globalConflicts = true;
-                    const cCard = document.createElement('div');
-                    cCard.className = "bg-red-950/40 border border-red-800/40 p-2 rounded text-[10px] flex justify-between";
-                    cCard.innerHTML = `<span><strong>${emp.name}</strong> ↔ ${conflicts.map(c => c.name).join(', ')}</span><span class="text-slate-500">${emp.team}</span>`;
-                    if (!confList.innerHTML.includes(emp.name)) confList.appendChild(cCard);
+                    hasConflicts = true;
+                    if (!confList.innerHTML.includes(emp.name)) {
+                        confList.innerHTML += `<div class="bg-red-900/30 p-2 rounded text-[10px] border border-red-800">
+                            <strong>${emp.name}</strong> ↔ ${conflicts.map(c => c.name).join(', ')}
+                        </div>`;
+                    }
                 }
 
-                // Filter Logic
                 if ((teamFilter === 'All' || emp.team === teamFilter) && emp.name.toLowerCase().includes(search)) {
                     const start = new Date(emp.start);
                     const end = new Date(emp.end);
-                    const yearStart = new Date('2026-01-01');
-                    const dayOfYear = (start - yearStart) / (1000 * 60 * 60 * 24);
-                    const duration = (end - start) / (1000 * 60 * 60 * 24);
-
-                    const leftPos = (dayOfYear / 365) * 100;
-                    const widthPos = (duration / 365) * 100;
+                    const left = ((start - new Date('2026-01-01')) / (1000*60*60*24) / 365) * 100;
+                    const width = ((end - start) / (1000*60*60*24) / 365) * 100;
 
                     const row = document.createElement('div');
-                    row.className = 'gantt-container border-b border-slate-800/40 hover:bg-slate-800/20 transition-all';
+                    row.className = 'gantt-container border-b border-slate-800/40 items-center';
                     row.innerHTML = `
-                        <div class="p-3 border-r border-slate-800 bg-slate-900/50">
-                            <div class="text-[11px] font-bold ${isConflicted ? 'text-red-500' : 'text-slate-200'} uppercase">${emp.name}</div>
-                            <div class="text-[8px] text-slate-500 font-medium uppercase tracking-tighter">${emp.role} • ${emp.team}</div>
+                        <div class="p-3 border-r border-slate-800 flex justify-between items-center group">
+                            <div>
+                                <div class="text-[11px] font-bold ${isConflicted ? 'text-red-500' : 'text-slate-200'}">${emp.name}</div>
+                                <div class="text-[8px] text-slate-500 uppercase">${emp.role}</div>
+                            </div>
+                            <button onclick="removeEmployee(${index})" class="admin-only text-red-500 hover:text-red-400 text-xs px-2">✕</button>
                         </div>
                         <div class="relative h-12 w-full flex items-center px-1">
-                            <div class="absolute inset-0 flex pointer-events-none opacity-20">
+                            <div class="absolute inset-0 flex pointer-events-none opacity-10">
                                 ${Array(12).fill(0).map(() => `<div class="flex-1 border-r border-slate-700"></div>`).join('')}
                             </div>
-                            <div class="leave-bar absolute h-6 rounded border border-white/5 shadow-xl flex items-center px-3 cursor-help group transition-transform hover:scale-[1.01]"
-                                 style="left: ${leftPos}%; width: ${widthPos}%; background: ${isConflicted ? 'linear-gradient(to right, #991b1b, #ef4444)' : 'linear-gradient(to right, #065f46, #10b981)'}">
-                                <span class="text-[8px] font-black text-white truncate uppercase">${isConflicted ? '⚠️ COLLAPSE' : (emp.remark || 'PLANNED')}</span>
-                                <div class="tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-100 text-slate-900 text-[10px] font-bold p-2 rounded shadow-2xl z-50 whitespace-nowrap border-b-2 border-emerald-500">
-                                    ${emp.name} (${emp.role})<br/>
-                                    ${emp.start} TO ${emp.end}
+                            <div class="leave-bar absolute h-6 rounded flex items-center px-2 group cursor-help transition-all hover:scale-[1.01]"
+                                 style="left: ${left}%; width: ${width}%; background: ${isConflicted ? 'linear-gradient(to right, #991b1b, #ef4444)' : 'linear-gradient(to right, #065f46, #10b981)'}">
+                                <span class="text-[8px] font-black text-white truncate uppercase">${isConflicted ? 'CONFLICT' : (emp.remark || 'ON LEAVE')}</span>
+                                <div class="tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-white text-slate-900 text-[10px] p-2 rounded shadow-2xl z-50 whitespace-nowrap">
+                                    ${emp.name} | ${emp.start} to ${emp.end}
                                 </div>
                             </div>
                         </div>
@@ -207,11 +245,9 @@
                     body.appendChild(row);
                 }
             });
-
-            confPanel.style.display = globalConflicts ? 'block' : 'none';
+            confPanel.style.display = hasConflicts ? 'block' : 'none';
         }
 
-        // Initial Launch
         renderDashboard();
     </script>
 </body>
