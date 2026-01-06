@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Epic Piping: Leave Manager Pro</title>
+    <title>Epic Piping: Leave Management Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0b0f1a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -14,7 +14,8 @@
         .leave-bar:hover .tooltip { display: block; }
         .admin-only { display: none; }
         body.admin-mode .admin-only { display: block; }
-        body.admin-mode .admin-flex { display: flex; }
+        .status-low { color: #f87171; } /* Red for low availability */
+        .status-ok { color: #34d399; }  /* Green for good availability */
     </style>
 </head>
 <body class="p-4 md:p-6">
@@ -22,15 +23,15 @@
     <div class="max-w-[1650px] mx-auto">
         <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-emerald-400 tracking-tight">ANNUAL LEAVE PLAN - 2026</h1>
-                <p class="text-slate-500 text-sm">Conflict Tracking & Persistence Enabled</p>
+                <h1 class="text-2xl font-bold text-emerald-400 tracking-tight underline decoration-emerald-800">LEAVE RESOURCE PLANNER 2026</h1>
+                <p class="text-slate-500 text-sm">Conflict Engine + Team Availability + Management Tools</p>
             </div>
 
-            <div class="flex flex-wrap gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-800 backdrop-blur-md">
-                <input type="text" id="nameSearch" placeholder="Search..." oninput="renderDashboard()" 
+            <div class="flex flex-wrap gap-3 bg-slate-900/80 p-3 rounded-xl border border-slate-800 shadow-xl">
+                <input type="text" id="nameSearch" placeholder="Search name..." oninput="render()" 
                        class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none focus:border-emerald-500 w-40">
                 
-                <select id="teamFilter" onchange="renderDashboard()" class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none">
+                <select id="teamFilter" onchange="render()" class="bg-slate-800 border border-slate-700 rounded px-3 py-1.5 text-sm outline-none cursor-pointer">
                     <option value="All">All Teams</option>
                     <option value="Team B">Team B</option>
                     <option value="Team C">Team C</option>
@@ -39,59 +40,93 @@
                     <option value="Material Team">Material Team</option>
                 </select>
 
-                <button onclick="toggleAdmin()" id="adminBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-sm font-bold transition-all">
+                <button onclick="toggleAdmin()" id="adminBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-sm font-bold transition-all shadow-lg">
                     Admin Login
                 </button>
             </div>
         </header>
 
-        <div class="admin-only mb-6 bg-slate-900 border border-emerald-500/30 p-4 rounded-xl shadow-2xl">
-            <h3 class="text-emerald-400 font-bold text-sm mb-4 uppercase tracking-widest">Add New Entry</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <input type="text" id="newName" placeholder="Name" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none focus:border-emerald-500">
-                <input type="text" id="newRole" placeholder="Designation" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none focus:border-emerald-500">
-                <select id="newTeam" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
-                    <option>Team B</option><option>Team C</option><option>Support Team</option><option>DC Team</option><option>Material Team</option>
-                </select>
-                <input type="date" id="newStart" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
-                <input type="date" id="newEnd" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
-                <button onclick="addEmployee()" class="bg-emerald-500 text-slate-900 font-bold rounded hover:bg-emerald-400 transition-colors">Add Employee</button>
-            </div>
-        </div>
-
-        <div id="conflictPanel" class="hidden mb-6 bg-red-950/20 border border-red-900/40 rounded-xl p-4">
-            <h2 class="text-red-500 font-bold text-xs uppercase mb-3 flex items-center gap-2">⚠️ Overlap Alerts</h2>
-            <div id="conflictList" class="grid grid-cols-1 md:grid-cols-3 gap-2"></div>
-        </div>
-
-        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-            <div class="gantt-container bg-slate-800/40 border-b border-slate-700">
-                <div class="p-4 font-bold text-slate-400 border-r border-slate-700 uppercase text-[10px] tracking-widest flex items-end">Resources</div>
-                <div class="flex flex-col">
-                    <div class="flex border-b border-slate-700/50">
-                        <script>
-                            ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].forEach(m => 
-                                document.write(`<div class="flex-1 text-center py-2 text-[10px] font-bold uppercase border-r border-slate-700/50 text-slate-400">${m}</div>`));
-                        </script>
-                    </div>
-                    <div class="flex">
-                        <script>
-                            for(let i=0; i<12; i++) {
-                                document.write('<div class="flex-1 flex border-r border-slate-700/30">');
-                                for(let j=1; j<=4; j++) document.write(`<div class="week-segment">W${j}</div>`);
-                                document.write('</div>');
-                            }
-                        </script>
-                    </div>
+        <div class="admin-only mb-6 bg-slate-900 border-2 border-emerald-500/30 p-5 rounded-2xl shadow-2xl relative">
+            <h3 id="formTitle" class="text-emerald-400 font-bold text-xs mb-4 uppercase tracking-widest">Add New Leave Entry</h3>
+            <input type="hidden" id="editIndex" value="-1">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-slate-500 font-bold">NAME</label>
+                    <input type="text" id="newName" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none focus:border-emerald-500">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-slate-500 font-bold">DESIGNATION</label>
+                    <input type="text" id="newRole" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none focus:border-emerald-500">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-slate-500 font-bold">TEAM</label>
+                    <select id="newTeam" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
+                        <option>Team B</option><option>Team C</option><option>Support Team</option><option>DC Team</option><option>Material Team</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-slate-500 font-bold">START DATE</label>
+                    <input type="date" id="newStart" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-slate-500 font-bold">END DATE</label>
+                    <input type="date" id="newEnd" class="bg-slate-800 border border-slate-700 p-2 rounded text-sm outline-none">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-slate-500 font-bold">ACTION</label>
+                    <button id="saveBtn" onclick="saveEntry()" class="bg-emerald-500 text-slate-900 font-black h-full rounded hover:bg-emerald-400 transition-colors py-2">SAVE ENTRY</button>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-[10px] text-slate-500 font-bold">SYSTEM</label>
+                    <button onclick="resetData()" class="bg-red-900/50 text-red-400 font-bold h-full rounded hover:bg-red-800 transition-colors py-2 border border-red-800/50">WIPE ALL</button>
                 </div>
             </div>
-            <div id="chartBody" class="max-h-[60vh] overflow-y-auto"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Team Availability %</h2>
+                    <div id="availabilityStats" class="space-y-3 max-h-80 overflow-y-auto pr-2">
+                        </div>
+                </div>
+
+                <div id="conflictPanel" class="hidden bg-red-950/20 border border-red-900/40 rounded-xl p-4 shadow-inner">
+                    <h2 class="text-red-500 font-bold text-xs uppercase tracking-widest mb-3">⚠️ Critical Collapses</h2>
+                    <div id="conflictList" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                <div class="gantt-container bg-slate-800/40 border-b border-slate-700">
+                    <div class="p-4 font-bold text-slate-400 border-r border-slate-700 uppercase text-[10px] tracking-widest flex items-end">Organization View</div>
+                    <div class="flex flex-col">
+                        <div class="flex border-b border-slate-700/50">
+                            <script>
+                                ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].forEach(m => 
+                                    document.write(`<div class="flex-1 text-center py-2 text-[10px] font-bold uppercase border-r border-slate-700/50 text-slate-400">${m}</div>`));
+                            </script>
+                        </div>
+                        <div class="flex">
+                            <script>
+                                for(let i=0; i<12; i++) {
+                                    document.write('<div class="flex-1 flex border-r border-slate-700/30">');
+                                    for(let j=1; j<=4; j++) document.write(`<div class="week-segment">W${j}</div>`);
+                                    document.write('</div>');
+                                }
+                            </script>
+                        </div>
+                    </div>
+                </div>
+                <div id="chartBody" class="max-h-[60vh] overflow-y-auto"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        const ADMIN_PASSWORD = "123"; // CHANGE THIS PASSWORD
-        let leaveData = JSON.parse(localStorage.getItem('epicLeaveData')) || [
+        const PASS = "leave";
+        const DEFAULT_DATA = [
             { name: "Saurav cs", team: "Team C", role: "Piping Checker", start: "2026-04-15", end: "2026-05-15", remark: "MARRAIGE" },
             { name: "Vivek Krishnan", team: "Team B", role: "Piping Checker", start: "2026-05-24", end: "2026-06-24", remark: "" },
             { name: "Harikrishnan TS", team: "Team B", role: "Piping Checker", start: "2026-08-10", end: "2026-09-10", remark: "" },
@@ -128,7 +163,7 @@
             { name: "Lekshmi Seema", team: "Support Team", role: "Support Checker", start: "2026-12-20", end: "2027-01-20", remark: "" },
             { name: "Ismail Ebrahim", team: "CAD Admin Team", role: "AutoSpool Admin", start: "2026-03-15", end: "2026-04-13", remark: "" },
             { name: "Anwin John", team: "CAD Admin Team", role: "AutoSpool Admin", start: "2026-12-20", end: "2027-01-19", remark: "" },
-            { name: "Kim Rose", team: "DC Team", role: "Document Controller", start: "2026-11-22", end: "2026-12-22", remark: "" },
+            { name: "Kim Rose", team: "Material Team", role: "Material Analyst", start: "2026-11-22", end: "2026-12-22", remark: "" },
             { name: "Abhinand Nair", team: "Team B", role: "Piping Checker", start: "2026-07-05", end: "2026-08-05", remark: "Marriage" },
             { name: "Pradheesh Manikandan", team: "Team B", role: "Piping Detailer", start: "2026-06-08", end: "2026-07-09", remark: "" },
             { name: "Sruthy K", team: "Material Team", role: "Material Analyst", start: "2026-11-25", end: "2026-12-25", remark: "" },
@@ -142,21 +177,23 @@
             { name: "Amal Kumar", team: "Revision Team", role: "Piping Detailer", start: "2026-06-21", end: "2026-07-20", remark: "" }
         ];
 
+        let leaveData = JSON.parse(localStorage.getItem('epicLeaveDB')) || DEFAULT_DATA;
+
         function toggleAdmin() {
             if (document.body.classList.contains('admin-mode')) {
                 document.body.classList.remove('admin-mode');
                 document.getElementById('adminBtn').innerText = "Admin Login";
             } else {
-                const pass = prompt("Enter Admin Password:");
-                if (pass === ADMIN_PASSWORD) {
+                if (prompt("Enter Password:") === PASS) {
                     document.body.classList.add('admin-mode');
-                    document.getElementById('adminBtn').innerText = "Logout";
-                } else { alert("Wrong Password!"); }
+                    document.getElementById('adminBtn').innerText = "Logout Admin";
+                }
             }
-            renderDashboard();
+            render();
         }
 
-        function addEmployee() {
+        function saveEntry() {
+            const idx = parseInt(document.getElementById('editIndex').value);
             const entry = {
                 name: document.getElementById('newName').value,
                 role: document.getElementById('newRole').value,
@@ -165,21 +202,52 @@
                 end: document.getElementById('newEnd').value,
                 remark: "PLANNED"
             };
-            if (!entry.name || !entry.start || !entry.end) return alert("Fill all fields");
-            leaveData.push(entry);
+
+            if (!entry.name || !entry.start || !entry.end) return alert("Missing fields");
+            if (new Date(entry.start) > new Date(entry.end)) return alert("Start date cannot be after end date");
+
+            if (idx === -1) leaveData.push(entry);
+            else leaveData[idx] = entry;
+
+            // Reset form
+            document.getElementById('editIndex').value = "-1";
+            document.getElementById('formTitle').innerText = "Add New Leave Entry";
+            document.getElementById('saveBtn').innerText = "SAVE ENTRY";
+            document.getElementById('newName').value = '';
+            
             saveAndRender();
         }
 
-        function removeEmployee(index) {
-            if (confirm(`Remove ${leaveData[index].name}?`)) {
+        function editEntry(index) {
+            const emp = leaveData[index];
+            document.getElementById('newName').value = emp.name;
+            document.getElementById('newRole').value = emp.role;
+            document.getElementById('newTeam').value = emp.team;
+            document.getElementById('newStart').value = emp.start;
+            document.getElementById('newEnd').value = emp.end;
+            document.getElementById('editIndex').value = index;
+            document.getElementById('formTitle').innerText = "Editing: " + emp.name;
+            document.getElementById('saveBtn').innerText = "UPDATE ENTRY";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function removeEntry(index) {
+            if (confirm(`Delete ${leaveData[index].name}'s record?`)) {
                 leaveData.splice(index, 1);
                 saveAndRender();
             }
         }
 
+        function resetData() {
+            if (confirm("This will delete all custom changes. Revert to original?")) {
+                leaveData = [...DEFAULT_DATA];
+                saveAndRender();
+            }
+        }
+
         function saveAndRender() {
-            localStorage.setItem('epicLeaveData', JSON.stringify(leaveData));
-            renderDashboard();
+            localStorage.setItem('epicLeaveDB', JSON.stringify(leaveData));
+            render();
         }
 
         function getOverlaps(current, all) {
@@ -190,7 +258,35 @@
             });
         }
 
-        function renderDashboard() {
+        function calculateAvailability() {
+            const teams = [...new Set(leaveData.map(e => e.team))];
+            const stats = document.getElementById('availabilityStats');
+            stats.innerHTML = '';
+
+            teams.forEach(team => {
+                const teamMembers = leaveData.filter(e => e.team === team).length + 5; // Simulating base staff count
+                const monthLeaves = Array(12).fill(0);
+
+                leaveData.filter(e => e.team === team).forEach(emp => {
+                    const start = new Date(emp.start).getMonth();
+                    const end = new Date(emp.end).getMonth();
+                    for(let i=start; i<=end; i++) monthLeaves[i]++;
+                });
+
+                let teamHtml = `<div class="mb-4"><h4 class="text-[11px] font-black text-emerald-500">${team}</h4><div class="flex gap-1 mt-1">`;
+                monthLeaves.forEach((leaves, i) => {
+                    const avail = Math.max(0, 100 - (leaves * 20)); // Arbitrary logic for visualization
+                    teamHtml += `<div class="flex-1 h-8 flex flex-col items-center justify-center rounded bg-slate-800 border border-slate-700">
+                        <span class="text-[7px] text-slate-500">${months[i][0]}</span>
+                        <span class="text-[9px] font-bold ${avail < 70 ? 'text-red-500' : 'text-emerald-400'}">${avail}%</span>
+                    </div>`;
+                });
+                teamHtml += `</div></div>`;
+                stats.innerHTML += teamHtml;
+            });
+        }
+
+        function render() {
             const teamFilter = document.getElementById('teamFilter').value;
             const search = document.getElementById('nameSearch').value.toLowerCase();
             const body = document.getElementById('chartBody');
@@ -207,8 +303,8 @@
                 if (isConflicted) {
                     hasConflicts = true;
                     if (!confList.innerHTML.includes(emp.name)) {
-                        confList.innerHTML += `<div class="bg-red-900/30 p-2 rounded text-[10px] border border-red-800">
-                            <strong>${emp.name}</strong> ↔ ${conflicts.map(c => c.name).join(', ')}
+                        confList.innerHTML += `<div class="bg-red-950/40 p-2 rounded text-[10px] border border-red-800 flex justify-between">
+                            <span><strong>${emp.name}</strong> clashes with ${conflicts[0].name}</span>
                         </div>`;
                     }
                 }
@@ -220,24 +316,28 @@
                     const width = ((end - start) / (1000*60*60*24) / 365) * 100;
 
                     const row = document.createElement('div');
-                    row.className = 'gantt-container border-b border-slate-800/40 items-center';
+                    row.className = 'gantt-container border-b border-slate-800/40 items-center transition-colors hover:bg-slate-800/20';
                     row.innerHTML = `
                         <div class="p-3 border-r border-slate-800 flex justify-between items-center group">
                             <div>
                                 <div class="text-[11px] font-bold ${isConflicted ? 'text-red-500' : 'text-slate-200'}">${emp.name}</div>
-                                <div class="text-[8px] text-slate-500 uppercase">${emp.role}</div>
+                                <div class="text-[8px] text-slate-500 uppercase font-black">${emp.role}</div>
                             </div>
-                            <button onclick="removeEmployee(${index})" class="admin-only text-red-500 hover:text-red-400 text-xs px-2">✕</button>
+                            <div class="admin-only flex gap-2">
+                                <button onclick="editEntry(${index})" class="text-blue-400 hover:text-white transition-colors">✏️</button>
+                                <button onclick="removeEntry(${index})" class="text-red-500 hover:text-white transition-colors">✕</button>
+                            </div>
                         </div>
                         <div class="relative h-12 w-full flex items-center px-1">
-                            <div class="absolute inset-0 flex pointer-events-none opacity-10">
-                                ${Array(12).fill(0).map(() => `<div class="flex-1 border-r border-slate-700"></div>`).join('')}
+                            <div class="absolute inset-0 flex pointer-events-none opacity-5">
+                                ${Array(12).fill(0).map(() => `<div class="flex-1 border-r border-slate-400"></div>`).join('')}
                             </div>
-                            <div class="leave-bar absolute h-6 rounded flex items-center px-2 group cursor-help transition-all hover:scale-[1.01]"
-                                 style="left: ${left}%; width: ${width}%; background: ${isConflicted ? 'linear-gradient(to right, #991b1b, #ef4444)' : 'linear-gradient(to right, #065f46, #10b981)'}">
-                                <span class="text-[8px] font-black text-white truncate uppercase">${isConflicted ? 'CONFLICT' : (emp.remark || 'ON LEAVE')}</span>
-                                <div class="tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-white text-slate-900 text-[10px] p-2 rounded shadow-2xl z-50 whitespace-nowrap">
-                                    ${emp.name} | ${emp.start} to ${emp.end}
+                            <div class="leave-bar absolute h-7 rounded-md border border-white/10 shadow-lg flex items-center px-3 group cursor-help transition-all hover:scale-[1.01]"
+                                 style="left: ${left}%; width: ${width}%; background: ${isConflicted ? 'linear-gradient(to right, #7f1d1d, #ef4444)' : 'linear-gradient(to right, #064e3b, #10b981)'}">
+                                <span class="text-[8px] font-black text-white truncate uppercase">${isConflicted ? '⚠️ CONFLICT' : (emp.remark || 'VACATION')}</span>
+                                <div class="tooltip hidden absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-white text-slate-900 text-[10px] font-bold p-2 rounded shadow-2xl z-50 whitespace-nowrap">
+                                    ${emp.name} (${emp.team})<br/>
+                                    ${emp.start} TO ${emp.end}
                                 </div>
                             </div>
                         </div>
@@ -246,9 +346,11 @@
                 }
             });
             confPanel.style.display = hasConflicts ? 'block' : 'none';
+            calculateAvailability();
         }
 
-        renderDashboard();
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        render();
     </script>
 </body>
 </html>
